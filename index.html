@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blueshift SMS Industry Monitor</title>
+    <style>
+        :root {
+            --blueshift-blue: #1E3A8A;
+            --blueshift-light-blue: #3B82F6;
+            --blueshift-dark: #1E293B;
+            --success: #059669;
+            --error: #dc2626;
+            --warning: #f59e0b;
+            --gray: #64748b;
+            --light-gray: #f8fafc;
+            --border-gray: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--blueshift-dark);
+            background-color: var(--light-gray);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--blueshift-blue) 0%, var(--blueshift-light-blue) 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 400;
+            margin: 10px 0;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        /* Controls */
+        .controls {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .refresh-btn {
+            background: var(--blueshift-light-blue);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-btn:hover {
+            background: var(--blueshift-blue);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .refresh-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .last-updated {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* Summary Cards */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .summary-card h3 {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-card .count {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .summary-card.high .count { color: var(--error); }
+        .summary-card.medium .count { color: var(--warning); }
+        .summary-card.low .count { color: var(--blueshift-light-blue); }
+        .summary-card.total .count { color: var(--blueshift-blue); }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            background: white;
+            padding: 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin: 20px 0;
+            display: flex;
+            overflow-x: auto;
+        }
+
+        .filter-tab {
+            background: none;
+            border: none;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--gray);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .filter-tab:hover {
+            color: var(--blueshift-dark);
+            background: var(--light-gray);
+        }
+
+        .filter-tab.active {
+            color: var(--blueshift-blue);
+            border-bottom-color: var(--blueshift-blue);
+        }
+
+        /* Articles Section */
+        .articles-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin: 20px 0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-gray);
+        }
+
+        .article-item {
+            padding: 20px;
+            margin: 10px 0;
+            background-color: var(--light-gray);
+            border-radius: 6px;
+            border-left: 3px solid var(--blueshift-light-blue);
+            transition: all 0.2s;
+        }
+
+        .article-item:hover {
+            background-color: #e0f2fe;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            transform: translateX(2px);
+        }
+
+        .article-title {
+            font-weight: 600;
+            color: var(--blueshift-dark);
+            margin-bottom: 8px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .article-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .article-title a:hover {
+            color: var(--blueshift-light-blue);
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .priority-high { 
+            background-color: #fef2f2; 
+            color: var(--error); 
+        }
+        
+        .priority-medium { 
+            background-color: #fffbeb; 
+            color: var(--warning); 
+        }
+        
+        .priority-low { 
+            background-color: #eff6ff; 
+            color: var(--blueshift-light-blue); 
+        }
+
+        .article-meta {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 8px;
+        }
+
+        .article-content {
+            font-size: 15px;
+            color: #475569;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .article-tags {
+            margin-bottom: 8px;
+        }
+
+        .tag-badge {
+            display: inline-block;
+            background-color: var(--border-gray);
+            color: #475569;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+
+        .article-link {
+            display: inline-block;
+            color: var(--blueshift-light-blue);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .article-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Source Status Table */
+        .source-status {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .source-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .source-table th {
+            background-color: var(--blueshift-blue);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .source-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-gray);
+        }
+
+        .source-table tr:hover {
+            background-color: var(--light-gray);
+        }
+
+        .status-success { 
+            color: var(--success); 
+            font-weight: bold; 
+        }
+        
+        .status-error { 
+            color: var(--error); 
+            font-weight: bold; 
+        }
+        
+        .status-no-updates { 
+            color: var(--gray); 
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-top-color: var(--blueshift-light-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state h2 {
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: var(--gray);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .refresh-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .summary-card {
+                padding: 15px;
+            }
+
+            .summary-card .count {
+                font-size: 28px;
+            }
+
+            .filter-tabs {
+                overflow-x: scroll;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="logo">BLUESHIFT</div>
+            <h1>SMS Industry Monitor</h1>
+            <p>Track SMS marketing trends, compliance updates, and industry news</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="controls">
+            <button class="refresh-btn" onclick="refreshData()">
+                <span class="refresh-icon">🔄</span>
+                <span>Refresh Data</span>
+            </button>
+            <div class="last-updated">
+                Last updated: <span id="lastUpdated">Never</span>
+            </div>
+        </div>
+
+        <div class="summary-cards">
+            <div class="summary-card high">
+                <h3>High Priority</h3>
+                <div class="count" id="highCount">0</div>
+            </div>
+            <div class="summary-card medium">
+                <h3>Medium Priority</h3>
+                <div class="count" id="mediumCount">0</div>
+            </div>
+            <div class="summary-card low">
+                <h3>Low Priority</h3>
+                <div class="count" id="lowCount">0</div>
+            </div>
+            <div class="summary-card total">
+                <h3>Total Articles</h3>
+                <div class="count" id="totalCount">0</div>
+            </div>
+        </div>
+
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterArticles('all')">All Articles</button>
+            <button class="filter-tab" onclick="filterArticles('high')">High Priority</button>
+            <button class="filter-tab" onclick="filterArticles('medium')">Medium Priority</button>
+            <button class="filter-tab" onclick="filterArticles('low')">Low Priority</button>
+            <button class="filter-tab" onclick="filterArticles('new')">New Since Last Visit</button>
+        </div>
+
+        <div class="articles-section">
+            <div class="section-header">
+                <h2>📱 Recent SMS Industry Articles</h2>
+                <span class="article-count" id="filteredCount">0 articles</span>
+            </div>
+            <div id="articlesContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading articles...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="source-status">
+            <div class="section-header">
+                <h2>📊 Source Monitoring Status</h2>
+            </div>
+            <table class="source-table">
+                <thead>
+                    <tr>
+                        <th>Source</th>
+                        <th>Status</th>
+                        <th>Recent Updates</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody id="sourceTableBody">
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px;">
+                            Loading source status...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p><strong>Blueshift SMS Industry Monitoring System</strong></p>
+            <p>© 2024 Blueshift. All rights reserved. | 
+                <a href="https://blueshift.com">blueshift.com</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let allArticles = [];
+        let sourcesData = [];
+        let lastVisit = localStorage.getItem('smsLastVisit') || new Date().toISOString();
+        let currentFilter = 'all';
+
+        // RSS Feeds configuration - SMS focused sources
+        const RSS_FEEDS = {
+            // Major SMS Platform Blogs
+            'Twilio Blog': 'https://www.twilio.com/blog/feed',
+            'Sinch Blog': 'https://www.sinch.com/blog/feed/',
+            'Bandwidth Blog': 'https://www.bandwidth.com/blog/feed/',
+            'MessageBird Blog': 'https://messagebird.com/blog/feed/',
+            'Plivo Blog': 'https://www.plivo.com/blog/feed/',
+            'Nexmo (Vonage) Blog': 'https://developer.vonage.com/blog/feed.xml',
+            'TextMagic Blog': 'https://www.textmagic.com/blog/feed/',
+            'SimpleTexting Blog': 'https://simpletexting.com/blog/feed/',
+            'EZ Texting Blog': 'https://www.eztexting.com/blog/feed',
+            'SlickText Blog': 'https://www.slicktext.com/blog/feed/',
+            
+            // Mobile Marketing Platforms
+            'Braze Blog': 'https://www.braze.com/resources/feed.xml',
+            'Airship Blog': 'https://www.airship.com/blog/feed/',
+            'OneSignal Blog': 'https://onesignal.com/blog/rss/',
+            'CleverTap Blog': 'https://clevertap.com/blog/feed/',
+            'MoEngage Blog': 'https://www.moengage.com/blog/feed/',
+            
+            // SMS Marketing Tools
+            'Attentive Mobile Blog': 'https://www.attentivemobile.com/blog/rss.xml',
+            'Postscript Blog': 'https://postscript.io/blog/rss/',
+            'SMSBump Blog': 'https://smsbump.com/blog/feed/',
+            'Klaviyo Blog': 'https://www.klaviyo.com/blog/feed.xml',
+            
+            // Telecom & Carrier News
+            'RCS Business Messaging': 'https://www.rcsbizemessaging.com/feed/',
+            'Mobile Marketing Watch': 'https://mobilemarketingwatch.com/feed/',
+            'FierceWireless': 'https://www.fiercewireless.com/rss/xml',
+            
+            // Compliance & Industry News
+            'CTIA Blog': 'https://www.ctia.org/news/feed',
+            'Mobile Ecosystem Forum': 'https://mobileecosystemforum.com/feed/',
+            'Tatango Blog': 'https://www.tatango.com/blog/feed/',
+            'TextRequest Blog': 'https://www.textrequest.com/blog/rss/',
+            
+            // General Marketing (SMS sections)
+            'Mobile Marketer': 'https://www.mobilemarketer.com/feed/',
+            'Marketing Land': 'https://martech.org/feed/',
+            'CallRail Blog': 'https://www.callrail.com/blog/feed/'
+        };
+
+        // SMS-related keywords
+        const SMS_KEYWORDS = [
+            // Core SMS terms
+            'sms', 'text message', 'text messaging', 'mms', 'mobile message',
+            'short message service', 'messaging', 'text marketing', 'sms marketing',
+            'mobile marketing', 'text campaigns', 'sms campaign', 'bulk sms',
+            
+            // Technical terms
+            'a2p', 'p2p', 'shortcode', 'short code', 'long code', '10dlc',
+            'toll-free', 'sender id', 'sms gateway', 'smpp', 'sms api',
+            'message segment', 'concatenation', 'unicode sms', 'gsm',
+            
+            // Compliance & Regulations
+            'tcpa', 'ctia', '10dlc registration', 'campaign registry',
+            'sms compliance', 'opt-in', 'opt-out', 'stop message',
+            'consent', 'carrier filtering', 'spam filtering',
+            
+            // Features & Capabilities
+            'two-way messaging', '2-way sms', 'sms automation',
+            'conversational messaging', 'rich messaging', 'rcs',
+            'rich communication services', 'omnichannel', 'sms integration',
+            
+            // Industry specific
+            'mobile engagement', 'text alerts', 'sms notifications',
+            'appointment reminders', 'sms verification', 'otp sms',
+            'transactional sms', 'promotional sms', 'sms roi',
+            'click-through rate', 'sms analytics', 'delivery rate'
+        ];
+
+        // Priority keywords
+        const HIGH_PRIORITY_KEYWORDS = [
+            'breaking', 'urgent', 'critical', 'major update', 'security breach',
+            'tcpa violation', 'tcpa update', 'compliance deadline', '10dlc deadline',
+            'carrier block', 'carrier filtering', 'spam classification',
+            'regulation change', 'mandatory', 'enforcement', 'fine', 'lawsuit',
+            'vulnerability', 'data breach', 'privacy violation', 'emergency',
+            'service disruption', 'outage', 'suspended', 'terminated'
+        ];
+
+        const MEDIUM_PRIORITY_KEYWORDS = [
+            'update', 'change', 'new feature', 'announcement', 'policy',
+            'best practice', 'recommendation', 'improvement', 'optimization',
+            'beta', 'preview', 'launch', 'release', 'integration',
+            'partnership', 'acquisition', 'guideline', 'benchmark'
+        ];
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCachedData();
+            refreshData();
+        });
+
+        function loadCachedData() {
+            const cached = localStorage.getItem('smsIndustryData');
+            if (cached) {
+                const data = JSON.parse(cached);
+                allArticles = data.articles || [];
+                sourcesData = data.sources || [];
+                updateDisplay();
+            }
+        }
+
+        function saveCacheData() {
+            const data = {
+                articles: allArticles,
+                sources: sourcesData,
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem('smsIndustryData', JSON.stringify(data));
+            localStorage.setItem('smsLastVisit', new Date().toISOString());
+        }
+
+        async function refreshData() {
+            const btn = document.querySelector('.refresh-btn');
+            btn.disabled = true;
+            btn.querySelector('.refresh-icon').style.animation = 'spin 1s linear infinite';
+            
+            allArticles = [];
+            sourcesData = [];
+
+            // Process each RSS feed
+            for (const [sourceName, feedUrl] of Object.entries(RSS_FEEDS)) {
+                try {
+                    await fetchRSSFeed(sourceName, feedUrl);
+                } catch (error) {
+                    console.error(`Error fetching ${sourceName}:`, error);
+                    sourcesData.push({
+                        name: sourceName,
+                        status: 'error',
+                        count: 0,
+                        error: error.message
+                    });
+                }
+            }
+
+            // Sort articles by date
+            allArticles.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Remove duplicates
+            const seen = new Set();
+            allArticles = allArticles.filter(article => {
+                const key = article.title.toLowerCase();
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+
+            saveCacheData();
+            updateDisplay();
+            
+            btn.disabled = false;
+            btn.querySelector('.refresh-icon').style.animation = 'none';
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+        }
+
+        async function fetchRSSFeed(sourceName, feedUrl) {
+            // Using RSS2JSON service for CORS-free RSS parsing
+            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
+            
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            
+            if (data.status !== 'ok') {
+                throw new Error(data.message || 'Failed to fetch feed');
+            }
+
+            let smsRelatedCount = 0;
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+            data.items.forEach(item => {
+                // Check if article is recent
+                const pubDate = new Date(item.pubDate);
+                if (pubDate < sevenDaysAgo) return;
+
+                // Check if SMS-related
+                const content = (item.title + ' ' + item.description).toLowerCase();
+                if (!isSMSRelated(content)) return;
+
+                // Skip comments
+                if (isComment(item.title)) return;
+
+                smsRelatedCount++;
+
+                // Determine priority
+                const priority = determinePriority(content);
+
+                // Extract tags
+                const tags = extractTags(content);
+
+                allArticles.push({
+                    title: item.title,
+                    url: item.link,
+                    content: item.description ? cleanHTML(item.description).substring(0, 200) + '...' : '',
+                    source: sourceName,
+                    date: item.pubDate,
+                    priority: priority,
+                    tags: tags,
+                    isNew: new Date(item.pubDate) > new Date(lastVisit)
+                });
+            });
+
+            sourcesData.push({
+                name: sourceName,
+                status: smsRelatedCount > 0 ? 'success' : 'no-updates',
+                count: smsRelatedCount,
+                url: data.feed.link || feedUrl.split('/').slice(0, 3).join('/')
+            });
+        }
+
+        function isSMSRelated(content) {
+            return SMS_KEYWORDS.some(keyword => content.includes(keyword));
+        }
+
+        function isComment(title) {
+            const lowerTitle = title.toLowerCase();
+            return ['comment on', 're:', 'reply to', 'commented on'].some(term => lowerTitle.includes(term));
+        }
+
+        function determinePriority(content) {
+            if (HIGH_PRIORITY_KEYWORDS.some(keyword => content.includes(keyword))) {
+                return 'high';
+            }
+            if (MEDIUM_PRIORITY_KEYWORDS.some(keyword => content.includes(keyword))) {
+                return 'medium';
+            }
+            return 'low';
+        }
+
+        function extractTags(content) {
+            const tags = [];
+            const tagMap = {
+                'compliance': ['tcpa', '10dlc', 'ctia', 'opt-in', 'opt-out', 'consent'],
+                'technology': ['api', 'rcs', 'a2p', 'shortcode', '10dlc', 'smpp'],
+                'marketing': ['campaign', 'roi', 'engagement', 'conversion', 'analytics'],
+                'carrier': ['carrier', 'verizon', 'at&t', 't-mobile', 'sprint'],
+                'security': ['security', 'spam', 'fraud', 'phishing', 'breach'],
+                'platform_update': ['twilio', 'sinch', 'bandwidth', 'nexmo', 'plivo']
+            };
+
+            for (const [tag, keywords] of Object.entries(tagMap)) {
+                if (keywords.some(keyword => content.includes(keyword))) {
+                    tags.push(tag);
+                }
+            }
+
+            return tags;
+        }
+
+        function cleanHTML(html) {
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            return temp.textContent || temp.innerText || '';
+        }
+
+        function updateDisplay() {
+            // Update counts
+            const counts = {
+                high: allArticles.filter(a => a.priority === 'high').length,
+                medium: allArticles.filter(a => a.priority === 'medium').length,
+                low: allArticles.filter(a => a.priority === 'low').length,
+                total: allArticles.length
+            };
+
+            document.getElementById('highCount').textContent = counts.high;
+            document.getElementById('mediumCount').textContent = counts.medium;
+            document.getElementById('lowCount').textContent = counts.low;
+            document.getElementById('totalCount').textContent = counts.total;
+
+            // Update articles
+            filterArticles(currentFilter);
+
+            // Update sources table
+            updateSourcesTable();
+        }
+
+        function filterArticles(filter) {
+            currentFilter = filter;
+            
+            // Update active tab
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Filter articles
+            let filtered = allArticles;
+            if (filter === 'high' || filter === 'medium' || filter === 'low') {
+                filtered = allArticles.filter(a => a.priority === filter);
+            } else if (filter === 'new') {
+                filtered = allArticles.filter(a => a.isNew);
+            }
+
+            // Update count
+            document.getElementById('filteredCount').textContent = `${filtered.length} articles`;
+
+            // Display articles
+            const container = document.getElementById('articlesContainer');
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h2>📭 No Articles Found</h2>
+                        <p>No articles match the selected filter.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(article => `
+                <div class="article-item">
+                    <div class="article-title">
+                        <a href="${article.url}" target="_blank">${article.title}</a>
+                        <span class="priority-badge priority-${article.priority}">
+                            ${article.priority.toUpperCase()}
+                        </span>
+                        ${article.isNew ? '<span style="color: #059669; font-size: 12px;">✨ NEW</span>' : ''}
+                    </div>
+                    <div class="article-meta">
+                        📍 <strong>${article.source}</strong> • ${new Date(article.date).toLocaleString()}
+                    </div>
+                    ${article.content ? `<div class="article-content">${article.content}</div>` : ''}
+                    ${article.tags.length > 0 ? `
+                        <div class="article-tags">
+                            ${article.tags.map(tag => `<span class="tag-badge">#${tag}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    <a href="${article.url}" class="article-link" target="_blank">Read full article →</a>
+                </div>
+            `).join('');
+        }
+
+        function updateSourcesTable() {
+            const tbody = document.getElementById('sourceTableBody');
+            
+            if (sourcesData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px;">
+                            No source data available yet.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = sourcesData.sort((a, b) => a.name.localeCompare(b.name)).map(source => {
+                let statusClass, statusText, details;
+                
+                if (source.status === 'success') {
+                    statusClass = 'status-success';
+                    statusText = '✅ Active';
+                    details = source.url ? 
+                        `<a href="${source.url}" target="_blank">${source.count} SMS-related articles</a>` :
+                        `${source.count} SMS-related articles`;
+                } else if (source.status === 'no-updates') {
+                    statusClass = 'status-no-updates';
+                    statusText = '📭 No Updates';
+                    details = 'No recent SMS-related posts';
+                } else {
+                    statusClass = 'status-error';
+                    statusText = '❌ Error';
+                    details = source.error || 'Failed to fetch';
+                }
+
+                return `
+                    <tr>
+                        <td>${source.name}</td>
+                        <td class="${statusClass}">${statusText}</td>
+                        <td>${source.count}</td>
+                        <td>${details}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>
